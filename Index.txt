@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proofreading Decision Tree</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .high-level { background: #e74c3c; }
+        .light-review { background: #3498db; }
+        .override { background: #f39c12; }
+        
+        .decision-circle {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            margin: 40px auto;
+            border: 3px solid #ecf0f1;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fafbfc 0%, #f8f9fa 100%);
+        }
+        
+        .criteria {
+            position: absolute;
+            width: 180px;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .criteria h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1em;
+            color: #34495e;
+        }
+        
+        .option {
+            display: block;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border: 2px solid;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option.red {
+            background: #e74c3c;
+            border-color: #c0392b;
+        }
+        
+        .option.blue {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+        
+        .option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .option.selected {
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.6);
+            transform: scale(1.1);
+        }
+        
+        /* Position criteria around circle */
+        .criteria:nth-child(1) { top: -20px; left: 210px; } /* Audience - top */
+        .criteria:nth-child(2) { top: 80px; right: -40px; } /* Purpose - top right */
+        .criteria:nth-child(3) { bottom: 80px; right: -40px; } /* Longevity - bottom right */
+        .criteria:nth-child(4) { bottom: -20px; left: 210px; } /* Impact - bottom */
+        .criteria:nth-child(5) { bottom: 80px; left: -40px; } /* Visibility - bottom left */
+        .criteria:nth-child(6) { top: 80px; left: -40px; } /* Length - top left */
+        
+        .center-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            background: #95a5a6;
+            border: 4px solid #7f8c8d;
+            transition: all 0.5s ease;
+        }
+        
+        .center-result.high-level {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-color: #a93226;
+        }
+        
+        .center-result.light-review {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-color: #2471a3;
+        }
+        
+        .override-rules {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .override-rules h3 {
+            color: #856404;
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        
+        .override-rule {
+            background: white;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .selection-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .selection-summary h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+        
+        .selected-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .selected-item {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .selected-item.red {
+            background: #e74c3c;
+        }
+        
+        .selected-item.blue {
+            background: #3498db;
+        }
+        
+        .calculation {
+            font-size: 0.95em;
+            color: #6c757d;
+            margin-top: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            background: #5a6268;
+        }
+        
+        @media (max-width: 768px) {
+            .decision-circle {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .criteria {
+                width: 140px;
+            }
+            
+            .criteria h3 {
+                font-size: 0.9em;
+            }
+            
+            .option {
+                font-size: 0.8em;
+                padding: 6px 8px;
+            }
+            
+            .center-result {
+                width: 140px;
+                height: 140px;
+                font-size: 1em;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proofreading Decision Tool</h1>
+        <p class="subtitle">Select one option from each criterion to determine the appropriate level of proofreading</p>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color high-level"></div>
+                <span>High-Level Proofreading (.1)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color light-review"></div>
+                <span>Light Review (.2)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color override"></div>
+                <span>Override Rules</span>
+            </div>
+        </div>
+        
+        <div class="override-rules">
+            <h3>🔄 Override Rules</h3>
+            <div class="override-rule">
+                <strong>Rule 1:</strong> High Stakes (4.1) → Always High-Level Proofreading
+            </div>
+            <div class="override-rule">
+                <strong>Rule 2:</strong> Internal Use (1.2) → Always Light Review (unless Rule 1 applies)
+            </div>
+            <div class="override-rule">
+                <strong>Rule 3:</strong> Otherwise → Majority of .1 = High-Level, Majority of .2 = Light Review
+            </div>
+        </div>
+        
+        <div class="decision-circle">
+            <!-- Audience -->
+            <div class="criteria">
+                <h3>1. Audience</h3>
+                <div class="option red" data-level="1" data-value="1">Public-facing (1.1)</div>
+                <div class="option blue" data-level="1" data-value="2">Internal use (1.2)</div>
+            </div>
+            
+            <!-- Purpose -->
+            <div class="criteria">
+                <h3>2. Purpose</h3>
+                <div class="option red" data-level="2" data-value="1">Marketing copy (2.1)</div>
+                <div class="option blue" data-level="2" data-value="2">Instructional (2.2)</div>
+            </div>
+            
+            <!-- Longevity -->
+            <div class="criteria">
+                <h3>3. Longevity</h3>
+                <div class="option red" data-level="3" data-value="1">Evergreen (3.1)</div>
+                <div class="option blue" data-level="3" data-value="2">Short-lived (3.2)</div>
+            </div>
+            
+            <!-- Impact -->
+            <div class="criteria">
+                <h3>4. Impact</h3>
+                <div class="option red" data-level="4" data-value="1">High stakes (4.1)</div>
+                <div class="option blue" data-level="4" data-value="2">Low stakes (4.2)</div>
+            </div>
+            
+            <!-- Visibility -->
+            <div class="criteria">
+                <h3>5. Visibility</h3>
+                <div class="option red" data-level="5" data-value="1">Highly visible (5.1)</div>
+                <div class="option blue" data-level="5" data-value="2">Discreet (5.2)</div>
+            </div>
+            
+            <!-- Length -->
+            <div class="criteria">
+                <h3>6. Length</h3>
+                <div class="option red" data-level="6" data-value="1">Over 200 words (6.1)</div>
+                <div class="option blue" data-level="6" data-value="2">Under 200 words (6.2)</div>
+            </div>
+            
+            <div class="center-result" id="result">
+                <div>Select criteria</div>
+                <div style="font-size: 0.8em; margin-top: 10px;">to see result</div>
+            </div>
+        </div>
+        
+        <div class="selection-summary">
+            <h3>Your Selection & Calculation</h3>
+            <div class="selected-items" id="selectedItems">
+                <em>No selections made yet</em>
+            </div>
+            <div class="calculation" id="calculation">
+                Make selections from each criterion above to see the calculation logic.
+            </div>
+            <button class="reset-btn" onclick="resetSelections()">Reset All Selections</button>
+        </div>
+    </div>
+
+    <script>
+        let selections = {};
+        
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                const level = this.dataset.level;
+                const value = this.dataset.value;
+                
+                // Remove previous selection for this level
+                document.querySelectorAll(`[data-level="${level}"]`).forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selection to this option
+                this.classList.add('selected');
+                selections[level] = {
+                    value: value,
+                    text: this.textContent,
+                    isRed: this.classList.contains('red')
+                };
+                
+                updateResult();
+                updateSummary();
+            });
+        });
+        
+        function updateResult() {
+            const result = document.getElementById('result');
+            
+            // Check if all selections are made
+            if (Object.keys(selections).length < 6) {
+                result.className = 'center-result';
+                result.innerHTML = `<div>Select criteria</div><div style="font-size: 0.8em; margin-top: 10px;">${6 - Object.keys(selections).length} remaining</div>`;
+                return;
+            }
+            
+            const decision = calculateDecision();
+            
+            if (decision.result === 'high') {
+                result.className = 'center-result high-level';
+                result.innerHTML = `<div>HIGH-LEVEL</div><div>PROOFREADING</div><div style="font-size: 0.8em; margin-top: 10px;">${decision.reason}</div>`;
+            } else {
+                result.className = 'center-result light-review';
+                result.innerHTML = `<div>LIGHT</div><div>REVIEW</div><div style="font-size: 0.8em; margin-top: 10px;">${decision.reason}</div>`;
+            }
+        }
+        
+        function calculateDecision() {
+            // Rule 1: High Stakes (4.1) overrides everything
+            if (selections['4'] && selections['4'].value === '1') {
+                return { result: 'high', reason: 'High Stakes Override' };
+            }
+            
+            // Rule 2: Internal Use (1.2) defaults to light review
+            if (selections['1'] && selections['1'].value === '2') {
+                return { result: 'light', reason: 'Internal Use Override' };
+            }
+            
+            // Rule 3: Count majority of .1 vs .2
+            let redCount = 0;
+            let blueCount = 0;
+            
+            Object.values(selections).forEach(selection => {
+                if (selection.value === '1') redCount++;
+                else blueCount++;
+            });
+            
+            if (redCount > blueCount) {
+                return { result: 'high', reason: `Majority .1 (${redCount} vs ${blueCount})` };
+            } else {
+                return { result: 'light', reason: `Majority .2 (${blueCount} vs ${redCount})` };
+            }
+        }
+        
+        function updateSummary() {
+            const selectedItems = document.getElementById('selectedItems');
+            const calculation = document.getElementById('calculation');
+            
+            if (Object.keys(selections).length === 0) {
+                selectedItems.innerHTML = '<em>No selections made yet</em>';
+                calculation.innerHTML = 'Make selections from each criterion above to see the calculation logic.';
+                return;
+            }
+            
+            // Show selected items
+            let itemsHtml = '';
+            Object.keys(selections).sort().forEach(level => {
+                const selection = selections[level];
+                const colorClass = selection.isRed ? 'red' : 'blue';
+                itemsHtml += `<div class="selected-item ${colorClass}">${selection.text}</div>`;
+            });
+            selectedItems.innerHTML = itemsHtml;
+            
+            // Show calculation logic
+            if (Object.keys(selections).length === 6) {
+                const decision = calculateDecision();
+                let calculationHtml = '<strong>Decision Logic:</strong><br>';
+                
+                if (selections['4'] && selections['4'].value === '1') {
+                    calculationHtml += '✅ <strong>Rule 1 Applied:</strong> High Stakes (4.1) detected → High-Level Proofreading';
+                } else if (selections['1'] && selections['1'].value === '2') {
+                    calculationHtml += '✅ <strong>Rule 2 Applied:</strong> Internal Use (1.2) detected → Light Review';
+                } else {
+                    let redCount = 0;
+                    let blueCount = 0;
+                    Object.values(selections).forEach(selection => {
+                        if (selection.value === '1') redCount++;
+                        else blueCount++;
+                    });
+                    calculationHtml += `✅ <strong>Rule 3 Applied:</strong> Counting majority → ${redCount} × (.1) vs ${blueCount} × (.2)<br>`;
+                    calculationHtml += `Result: ${decision.result === 'high' ? 'High-Level Proofreading' : 'Light Review'}`;
+                }
+                
+                calculation.innerHTML = calculationHtml;
+            } else {
+                calculation.innerHTML = `<strong>Progress:</strong> ${Object.keys(selections).length}/6 criteria selected. Complete all selections to see the decision logic.`;
+            }
+        }
+        
+        function resetSelections() {
+            selections = {};
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            updateResult();
+            updateSummary();
+        }
+    </script>
+</body>
+</html>
